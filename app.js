@@ -25,13 +25,36 @@ app.use('/api/v1/',payment)
 app.use('/api/v1/',otp)
 
 app.use('/uploads',express.static(path.join(__dirname,'/uploads')))
-//Allow Any Port to accept the data
-const cors = require('cors');
+const allowedOrigins = [
+  'http://127.0.0.1:3000',
+  'http://localhost:3000',
+  'https://novamart-two.vercel.app'
+];
+
 app.use(cors({
-    origin: ['http://127.0.0.1:3000', 'http://localhost:3000','https://novamart-two.vercel.app'],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
+  origin: function (origin, callback) {
+    // allow requests with no origin like mobile apps or curl
+    if (!origin) return callback(null, true); 
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
 }));
+
+// Handle preflight OPTIONS requests for all routes
+app.options('*', cors());
+
+//Allow Any Port to accept the data
+// const cors = require('cors');
+// app.use(cors({
+//     origin: ['http://127.0.0.1:3000', 'http://localhost:3000','https://novamart-two.vercel.app'],
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     credentials: true,
+// }));
 
 app.use(
     "/images",
