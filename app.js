@@ -6,6 +6,23 @@ const cookieParser=require('cookie-parser');
 const path =require('path')
 const dotenv = require('dotenv');
 const cors = require('cors');
+const allowedOrigins = [
+  'http://127.0.0.1:3000',
+  'http://localhost:3000',
+  'https://novamart-two.vercel.app'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // allow requests from curl/postman or server-side
+    if (allowedOrigins.includes(origin)) callback(null, true);
+    else callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"]
+}));
+
+app.options("*", cors()); // handle preflight
 dotenv.config({path:path.join(__dirname,"config/config.env")})
 //Allowing the data in the format of JSON
 app.use(express.json());
@@ -26,23 +43,7 @@ app.use('/api/v1/',payment)
 app.use('/api/v1/',otp)
 
 app.use('/uploads',express.static(path.join(__dirname,'/uploads')))
-const allowedOrigins = [
-  'http://127.0.0.1:3000',
-  'http://localhost:3000',
-  'https://novamart-two.vercel.app'
-];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // allow requests from curl/postman or server-side
-    if (allowedOrigins.includes(origin)) callback(null, true);
-    else callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
-  methods: ["GET","POST","PUT","DELETE","OPTIONS"]
-}));
-
-app.options("*", cors()); // handle preflight
 
 
 //Allow Any Port to accept the data
