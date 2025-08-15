@@ -34,20 +34,16 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin like mobile apps or curl
-    if (!origin) return callback(null, true); 
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
+    if (!origin) return callback(null, true); // allow requests from curl/postman or server-side
+    if (allowedOrigins.includes(origin)) callback(null, true);
+    else callback(new Error("Not allowed by CORS"));
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"]
 }));
 
-// Handle preflight OPTIONS requests for all routes
-app.options('*', cors());
+app.options("*", cors()); // handle preflight
+
 
 //Allow Any Port to accept the data
 // const cors = require('cors');
