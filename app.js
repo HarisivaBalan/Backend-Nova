@@ -5,6 +5,7 @@ const auth=require('./routes/auth')
 const cookieParser=require('cookie-parser');
 const path =require('path')
 const dotenv = require('dotenv');
+const cors = require('cors');
 dotenv.config({path:path.join(__dirname,"config/config.env")})
 //Allowing the data in the format of JSON
 app.use(express.json());
