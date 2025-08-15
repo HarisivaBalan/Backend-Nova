@@ -28,7 +28,7 @@ app.use('/uploads',express.static(path.join(__dirname,'/uploads')))
 //Allow Any Port to accept the data
 const cors = require('cors');
 app.use(cors({
-    origin: ['http://127.0.0.1:3000', 'http://localhost:3000',"https://novamart-two.vercel.app"],
+    origin: ['http://127.0.0.1:3000', 'http://localhost:3000','https://novamart-two.vercel.app'],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
 }));
