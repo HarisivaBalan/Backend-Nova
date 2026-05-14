@@ -73,13 +73,9 @@ app.use(
 
   
 app.use("/images", express.static(path.join(__dirname, "public/images")));
-if(process.env.NODE_ENV==="production")
-{
-  app.use(express.static(path.join(__dirname,'../fronte/build')));
-  app.get('*',(req,res)=>{
-    res.sendFile(path.resolve(__dirname,'../fronte/build/index.html'))
-  })
-}
+// Frontend is deployed on Vercel
+// Backend only serves APIs
+
 app.get("/", (req, res) => {
   res.send("Hello from Express App");
 });

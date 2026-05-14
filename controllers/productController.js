@@ -340,3 +340,183 @@ exports.getCategories = async (req, res, next) => {
         res.status(500).json({ success: false, message: "Failed to fetch categories" });
     }
 };
+
+
+
+// backend/controllers/productController.js
+
+
+// Supplier: Create product
+exports.createSupplierProduct = async (req, res) => {
+  try {
+    const {
+      name,
+      brand,
+      price,
+      originalPrice,
+      description,
+      category,
+      seller,
+      stock,
+      count,
+    } = req.body;
+
+    // Basic validations (frontend also validates, but double check)
+    if (!name || !brand || !price || !originalPrice || !description || !category || !seller || !stock) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill all required fields.",
+      });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please upload at least one product image.",
+      });
+    }
+
+    const priceNum = Number(price);
+    const originalPriceNum = Number(originalPrice);
+
+    if (isNaN(priceNum) || isNaN(originalPriceNum) || originalPriceNum <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid price / original price.",
+      });
+    }
+
+    const images = req.files.map((file) => ({
+      url: `/uploads/products/${file.filename}`,
+    }));
+
+    const product = await Product.create({
+      name,
+      brand,
+      price: priceNum,
+      originalPrice: originalPriceNum,
+      description,
+      category,
+      seller,
+      stock,
+      count: count || 0,
+      images,
+      user: req.user?._id || null, // supplier user id
+      status: "pending", // supplier product is pending approval
+    });
+
+    return res.status(201).json({
+      success: true,
+      product,
+      message: "Product submitted for review.",
+    });
+  } catch (error) {
+    console.error("Create supplier product error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while creating the product.",
+    });
+  }
+};
+
+// Supplier: Get their own products
+exports.getMyProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ user: req.user._id }).sort({
+      createdAt: -1,
+    });
+
+    return res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    console.error("Get my products error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while fetching your products.",
+    });
+  }
+};
+
+// Admin: Get all products (with optional status filter)
+exports.getAdminProducts = async (req, res) => {
+  try {
+    const { status } = req.query;
+    const filter = {};
+
+    if (status && ["pending", "accepted", "rejected"].includes(status)) {
+      filter.status = status;
+    }
+
+    const products = await Product.find(filter)
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    console.error("Get admin products error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while fetching products.",
+    });
+  }
+};
+
+// Admin: Update product status (approve / reject)
+exports.updateProductStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const { id } = req.params;
+
+    if (!status || !["pending", "accepted", "rejected"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status.",
+      });
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
+
+    product.status = status;
+    await product.save();
+
+    return res.status(200).json({
+      success: true,
+      product,
+      message: `Product status updated to ${status}.`,
+    });
+  } catch (error) {
+    console.error("Update product status error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while updating status.",
+    });
+  }
+};
+
+// Public: Get all visible products (only accepted)
+exports.getPublicProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ status: "accepted" }).sort({
+      createdAt: -1,
+    });
+
+    return res.status(200).json({ success: true, products });
+  } catch (error) {
+    console.error("Get public products error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while fetching products.",
+    });
+  }
+};

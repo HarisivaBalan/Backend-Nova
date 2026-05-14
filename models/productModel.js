@@ -110,7 +110,13 @@ const productSchema = new mongoose.Schema({
         createdAt:{
             type:Date,
             default:Date.now()
-        }
+        },
+        status: {
+    // supplier approval status
+    type: String,
+    enum: ["pending", "accepted", "rejected"],
+    default: "pending",
+  },
         
     
     
